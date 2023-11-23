@@ -1,16 +1,3 @@
-
-# Requirements
-## 1. Firebase
- ```
-brand "BMW" (string)
-imagePath "https://www.bmw.co.th/content/dam/bmw/common/all-models/i-series/i7/2022/Highlights/bmw-7-series-i7-sp-desktop.jpg.asset.1687171609318.jpg" (string)
-model "i7" (string)
-price 10000 (number)
-```
-
-# Connect to Firebase
-### 1. Model File (car_model.dart)
-```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -33,6 +20,17 @@ class Car {
     );
   }
 
+  factory Car.fromSnapshot(DocumentSnapshot snapshot) {
+    Map<String, dynamic> json = snapshot.data() as Map<String, dynamic>;
+    return Car(
+      snapshot.id,
+      json['brand'] as String,
+      json['imagePath'] as String,
+      json['model'] as String,
+      json['price'] as num,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -41,6 +39,10 @@ class Car {
       'model': model,
       'price': price,
     };
+  }
+
+  String toString() {
+    return 'YourClassName{id: $id, brand: $brand, imagePath: $imagePath, model: $model, price: $price}';
   }
 }
 
@@ -71,7 +73,7 @@ class AllCars {
 }
 
 class CarsProvider extends ChangeNotifier {
-  List<Car>? _allCars;
+  List<Car>? _allCars = [];
 
   List<Car>? get allCars => _allCars;
 
@@ -79,9 +81,19 @@ class CarsProvider extends ChangeNotifier {
     _allCars = cars;
     notifyListeners();
   }
+
+  void addCar(Car car) {
+    print("addCar @ provider is called");
+    _allCars!.add(car);
+    notifyListeners();
+  }
+
+  void updateCar(Car updatedCar) {
+    print("updateCar @ provider is called");
+    int index = _allCars!.indexWhere((car) => car.id == updatedCar.id);
+    if (index != -1) {
+      _allCars![index] = updatedCar;
+      notifyListeners();
+    }
+  }
 }
-
-```
-
-
-### 1. Controller File (car_controller.dart)
